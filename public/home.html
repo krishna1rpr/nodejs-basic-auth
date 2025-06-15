@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workspaces</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        .button-container { margin-top: 20px; }
+        .workspace-button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+        .workspace-button:hover {
+            background-color: #218838;
+        }
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .logout-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <button class="logout-button" onclick="location.href='/logout'">Logout</button>
+    <h1>Welcome to Workspaces</h1>
+    <p>Please select a workspace to view its certificates:</p>
+    <div id="workspaceButtons" class="button-container">
+        Loading workspaces...
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/getworkspaces')
+                .then(response => {
+                    if (!response.ok) {
+                        // Handle cases where the session might have expired or not authorized
+                        if (response.status === 401) {
+                            window.location.href = '/login'; // Redirect to login
+                        }
+                        throw new Error('Failed to fetch workspaces');
+                    }
+                    return response.json();
+                })
+                .then(workspaces => {
+                    const buttonContainer = document.getElementById('workspaceButtons');
+                    buttonContainer.innerHTML = ''; // Clear "Loading..." text
+                    if (workspaces && workspaces.length > 0) {
+                        workspaces.forEach(workspace => {
+                            const button = document.createElement('a');
+                            button.href = `/${workspace.id}`;
+                            button.className = 'workspace-button';
+                            button.textContent = workspace.name;
+                            buttonContainer.appendChild(button);
+                        });
+                    } else {
+                        buttonContainer.textContent = 'No workspaces available.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching workspaces:', error);
+                    document.getElementById('workspaceButtons').textContent = 'Error loading workspaces.';
+                });
+        });
+    </script>
+</body>
+</html>
